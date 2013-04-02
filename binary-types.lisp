@@ -14,7 +14,6 @@
 ;;;;------------------------------------------------------------------
 
 (defpackage #:binary-types
-  (:nicknames #:bt)
   (:use #:common-lisp)
   (:export #:*endian*			; [dynamic-var] must be bound when reading integers
 	   #:endianess			; [deftype] The set of endian names
