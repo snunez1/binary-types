@@ -672,6 +672,14 @@ read are returned."
 	       ',type-name)))))))
   
 
+(defun calculate-sizeof (slot-types)
+  (loop
+    for slot-type in slot-types
+    for sizeof = (sizeof slot-type)
+    when (null sizeof)
+      do (return)
+    sum sizeof))
+
 (defmacro define-binary-struct (name-and-options dummy-options &rest doc-slot-descriptions)
   (declare (ignore dummy-options))	; clisp seems to require this..
   (let (embedded-declarations)
@@ -732,7 +740,7 @@ read are returned."
 	     (setf (find-binary-type ',type-name)
 	       (make-instance 'binary-struct
 		 'name ',type-name
-		 'sizeof (loop for s in ',slot-types sum (sizeof s))
+		 'sizeof (calculate-sizeof ',slot-types)
 		 'slots ',binslots
 		 'offset 0
 		 'constructor (find-symbol (format nil "~A-~A" '#:make ',type-name))))
