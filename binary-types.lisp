@@ -22,9 +22,15 @@
 	   #:u8				; [type-name] 8-bit unsigned integer
 	   #:u16			; [type-name] 16-bit unsigned integer
 	   #:u32			; [type-name] 32-bit unsigned integer
+	   #:u64			; [type-name] 64-bit unsigned integer
+	   #:u128			; [type-name] 128-bit unsigned integer
+	   #:u256			; [type-name] 256-bit unsigned integer
 	   #:s8				; [type-name] 8-bit signed integer
 	   #:s16			; [type-name] 16-bit signed integer
 	   #:s32			; [type-name] 32-bit signed integer
+	   #:s64			; [type-name] 64-bit signed integer
+	   #:s128			; [type-name] 128-bit signed integer
+	   #:s256			; [type-name] 256-bit signed integer
 					; (you may define additional integer types
 					; of any size yourself.)
 	   ;; type defining macros
@@ -223,6 +229,9 @@ or nil if TYPE is not constant-sized."))
 (define-unsigned u8 1)
 (define-unsigned u16 2)
 (define-unsigned u32 4)
+(define-unsigned u64 8)
+(define-unsigned u128 16)
+(define-unsigned u256 32)
 
 (defmethod read-binary ((type binary-unsigned) stream &key &allow-other-keys)
   (if (= 1 (sizeof type))
@@ -265,6 +274,9 @@ or nil if TYPE is not constant-sized."))
 (define-signed s8 1)
 (define-signed s16 2)
 (define-signed s32 4)
+(define-signed s64 8)
+(define-signed s128 16)
+(define-signed s256 32)
 
 (defmethod read-binary ((type binary-signed) stream &key &allow-other-keys)
   (let ((unsigned-value 0))
