@@ -1,77 +1,8 @@
-;;;;------------------------------------------------------------------
-;;;; 
-;;;;    Copyright (C) 1999-2004,
-;;;;    Department of Computer Science, University of Tromsoe, Norway
-;;;; 
-;;;; Filename:      binary-types.lisp
-;;;; Description:   Reading and writing of binary data in streams.
-;;;; Author:        Frode Vatvedt Fjeld <frodef@acm.org>
-;;;; Created at:    Fri Nov 19 18:53:57 1999
-;;;; Distribution:  See the accompanying file COPYING.
-;;;;                
-;;;; $Id: binary-types.lisp,v 1.3 2004/04/20 08:32:50 ffjeld Exp $
-;;;;                
-;;;;------------------------------------------------------------------
-
-(defpackage #:binary-types
-  (:use #:common-lisp)
-  (:export #:*endian*			; [dynamic-var] must be bound when reading integers
-	   #:endianess			; [deftype] The set of endian names
-	   ;; built-in types
-	   #:char8			; [type-name] 8-bit character
-	   #:u8				; [type-name] 8-bit unsigned integer
-	   #:u16			; [type-name] 16-bit unsigned integer
-	   #:u32			; [type-name] 32-bit unsigned integer
-	   #:u64			; [type-name] 64-bit unsigned integer
-	   #:u128			; [type-name] 128-bit unsigned integer
-	   #:u256			; [type-name] 256-bit unsigned integer
-	   #:s8				; [type-name] 8-bit signed integer
-	   #:s16			; [type-name] 16-bit signed integer
-	   #:s32			; [type-name] 32-bit signed integer
-	   #:s64			; [type-name] 64-bit signed integer
-	   #:s128			; [type-name] 128-bit signed integer
-	   #:s256			; [type-name] 256-bit signed integer
-					; (you may define additional integer types
-					; of any size yourself.)
-	   ;; type defining macros
-	   #:define-unsigned		; [macro] declare an unsigned-int type
-	   #:define-signed		; [macro] declare a signed-int type
-	   #:define-binary-struct	; [macro] declare a binary defstruct type
-	   #:define-binary-class	; [macro] declare a binary defclass type
-	   #:define-bitfield		; [macro] declare a bitfield (symbolic integer) type
-	   #:define-enum		; [macro] declare an enumerated type
-	   #:define-binary-string	; [macro] declare a string type
-	   #:define-null-terminated-string ; [macro] declare a null-terminated string
-	   ;; readers and writers
-	   #:read-binary		; [func] reads a binary-type from a stream
-	   #:read-binary-record		; [method]
-	   #:write-binary		; [func] writes an binary object to a stream
-	   #:write-binary-record	; [method]
-	   #:read-binary-string
-	   ;; record handling
-	   #:binary-record-slot-names	; [func] list names of binary slots.
-	   #:binary-slot-value		; [func] get "binary" version of slot's value
-	   #:binary-slot-type		; [func] get binary slot's binary type
-	   #:binary-slot-tags		; [func] get the tags of a binary slot
-	   #:slot-offset		; [func] determine offset of slot.
-	   ;; misc
-	   #:find-binary-type		; [func] accessor to binary-types namespace
-	   #:sizeof			; [func] The size in octets of a binary type
-	   #:enum-value			; [func] Calculate numeric version of enum value
-	   #:enum-symbolic-value	; [func] Inverse of enum-value.
-	   #:with-binary-file		; [macro] variant of with-open-file
-	   #:with-binary-output-to-list	; [macro]
-	   #:with-binary-output-to-vector ; [macro]
-	   #:with-binary-input-from-list ; [macro]
-	   #:with-binary-input-from-vector ; [macro]
-	   #:*binary-write-byte*	; [dynamic-var]
-	   #:*binary-read-byte*		; [dynamic-var]
-	   #:*padding-byte*		; [dynamic-var] The value filled in when writing paddings
-	   #:split-bytes		; [func] utility
-	   #:merge-bytes		; [func] utility
-	   ))
-
-(in-package binary-types)
+;;; -*- Mode: LISP; Syntax: Ansi-Common-Lisp; Base: 10; Package: BINARY-TYPES -*-
+;;; Copyright (C) 1999-2001 Department of Computer Science, University of Tromsø, Norway
+;;; Copyright (c) 2024 by Steven Nunez. All rights reserved.
+;;; SPDX-License-identifier: BSD-3-Clause
+(in-package #:binary-types)
 
 (defvar *ignore-hidden-slots-for-pcl* nil
   "Really ugly hack to allow older PCL-infested lisps to work in the
@@ -91,7 +22,7 @@ precense of :map-binary-read-delayed.")
   (loop for x on list by #'cddr collect (cons (first x) (second x))))
 
 ;;; ----------------------------------------------------------------
-;;; 
+;;;
 ;;; ----------------------------------------------------------------
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -141,7 +72,7 @@ or nil if TYPE is not constant-sized."))
 
 (defmethod sizeof (obj)
   (sizeof (find-binary-type (type-of obj))))
-  
+
 (defmethod sizeof ((type symbol))
   (sizeof (find-binary-type type)))
 
@@ -187,7 +118,7 @@ or nil if TYPE is not constant-sized."))
 	(format stream "~D-BIT~@[ ~A~] INTEGER TYPE: ~A"
 		(* 8 (slot-value type 'sizeof))
 		(slot-value type 'endian)
-		(binary-type-name type)))    
+		(binary-type-name type)))
     (call-next-method type stream)))
 
 ;;; WRITE-BINARY is identical for SIGNED and UNSIGNED, but READ-BINARY
@@ -252,7 +183,7 @@ or nil if TYPE is not constant-sized."))
 					(* 8 i)))))))
       (values unsigned-value
 	      (sizeof type)))))
-    
+
 ;;; ----------------------------------------------------------------
 ;;;              Twos Complement Signed Integer Types
 ;;; ----------------------------------------------------------------
@@ -571,7 +502,7 @@ read are returned."
 		 and map-read = nil
 		 and map-read-delayed = nil
 		 and tags = nil
-		 unless 
+		 unless
 		   (case slot-option
 		     (:binary-tag
 		      (prog1 t
@@ -670,7 +601,7 @@ read are returned."
 					     (slot-value instance ',(first bs))
 					     ',(fourth bs))))))
 	       ',type-name)))))))
-  
+
 
 (defun calculate-sizeof (slot-types)
   (loop
@@ -918,7 +849,7 @@ record object."
 				      (third s)
 				      (fourth s)))))))
 		 spec)))
-    `(let ((type-obj (make-instance 'bitfield 
+    `(let ((type-obj (make-instance 'bitfield
 		       'name ',type-name
 		       'sizeof (sizeof ',storage-type)
 		       'storage-type (find-binary-type ',storage-type))))
@@ -1019,13 +950,13 @@ record object."
 		(bitfield-entry-bytespec entry)
 		0)
 	 (bitfield-entry-value entry))))))
-  
+
 (defmethod read-binary ((type bitfield) stream &key &allow-other-keys)
   (multiple-value-bind (storage-obj num-octets-read)
       (read-binary (storage-type type) stream)
     (values (bitfield-compute-symbolic-value type storage-obj)
 	    num-octets-read)))
-  
+
 (defmethod write-binary ((type bitfield) stream symbolic-value &rest key-args)
   (apply #'write-binary
 	 (storage-type type)
@@ -1163,7 +1094,7 @@ otherwise the value of BODY."
 	 ,@body
 	 ,@(when (integerp vector-or-size-form)
 	     (list stream-var))))))
-	     
+
 
 ;;;
 
@@ -1181,7 +1112,8 @@ otherwise the value of BODY."
     (:big-endian
      (loop for byte in bytes
 	 append (loop for x from (1- (truncate from-size to-size)) downto 0
-		    collect (ldb (byte to-size (* x to-size)) byte))))))								      
+		    collect (ldb (byte to-size (* x to-size)) byte))))))
+
 (defun merge-bytes (bytes from-size to-size)
   "Combine BYTES sized FROM-SIZE bits into new bytes sized TO-SIZE bits."
   (assert (zerop (rem to-size from-size)))

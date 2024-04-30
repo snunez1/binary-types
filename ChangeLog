@@ -1,3 +1,18 @@
+2024-04-30 Steve Nunez
+
+	* RELEASE: 1.0.0
+
+	* Refactor the directory structure and remove file boiler plate
+
+	* Clean up ASDF
+
+	* Add array and vector types
+
+	* Add IEEE-754 floating point types
+
+	* Improve README and documentation
+
+
 2003-12-11  Frode Vatvedt Fjeld  <frodef@cs.uit.no>
 
 	* RELEASE: 0.90

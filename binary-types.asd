@@ -1,30 +1,19 @@
-;;;; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10 -*-
-;;;;------------------------------------------------------------------
-;;;; 
-;;;;    Copyright (C) 2008, Frode V. Fjeld
-;;;; 
-;;;;    For distribution policy, see the accompanying file COPYING.
-;;;; 
-;;;; Filename:      movitz.asd
-;;;; Description:   Movitz ASDF system definition.
-;;;; Author:        Frode Vatvedt Fjeld <ffjeld@common-lisp.net>
-;;;; Created at:    Thu Jan 15 18:40:58 2004
-;;;;                
-;;;; $Id: binary-types.asd,v 1.2 2008/02/25 23:43:24 ffjeld Exp $
-;;;;                
-;;;;------------------------------------------------------------------
+;;; -*- Mode: LISP; Base: 10; Syntax: ANSI-Common-lisp; Package: CL-USER -*-
+;;; Copyright (C) 1999-2001 Department of Computer Science, University of Tromsø, Norway
+;;; Copyright (c) 2024 by Steven Nunez. All rights reserved.
+;;; SPDX-License-identifier: BSD-3-Clause
 
-(defpackage binary-types-asd
-  (:use :cl :asdf))
-
-(in-package binary-types-asd)
-
-(defsystem binary-types
+(defsystem "binary-types"
   :name "Binary-types"
-  :maintainer "ffjeld@common-lisp.net"
+  :maintainer "Steven Nunez"
   :author "Frode V. Fjeld"
-  :license "BSD-like, see accopanying file COPYING."
+  :version "1.0.0"
+  :license :BSD-3-Clause
   :description "A library for reading and writing binary records."
+  :long-description  #.(uiop:read-file-string
+			(uiop:subpathname *load-pathname* "description.text"))
   :perform (load-op :after (op c)
 		    (provide 'binary-types))
-  :components ((:file "binary-types")))
+  :components ((:file "pkgdcl")
+	       (:file "binary-types")))
+
