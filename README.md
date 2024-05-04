@@ -5,7 +5,7 @@
   <h3 align="center">BINARY-TYPES</h3>
 
   <p align="center">
-
+  A system for declarative specification of binary file readers and writers
     <br />
     <br />
     <a href="https://github.com/snunez1/binary-types/issues">Report Bugs</a>
@@ -71,16 +71,16 @@ Support most kinds of binary types including:
  * Compound records of other binary types. Maps to lisp `DEFCLASS`
    classes or, when you prefer, `DEFSTRUCT` structs.
 
- * Vectors and arrays
+ * Vectors and arrays of integers and floats.
 
- * 32 and 64 bit IEEE-754 floats map to lisp `single-float` and `double-float`
+ * 32 and 64 bit IEEE-754 floats map to lisp `single-float` and `double-float`.
 
 
 ### History
 
 BINARY-TYPES was developed over the years 1999-2003 by Frode Vatvedt Fjeld <frodef@acm.org> whilst working at the Department of Computer Science, University of Tromsø, Norway. It later served as the basis for [Chapter 24: Parsing Binary Files](https://gigamonkeys.com/book/practical-parsing-binary-files) of the book [Practical Common Lisp](https://gigamonkeys.com/book/) by Peter Seibel.  That chapter makes a good technical reference for the system, and you should read it if you want to extend BINARY-TYPES.
 
-Frode's version was sufficiently well done that the system went largely unchanged since, except for some local additions for [slitch](https://github.com/sharplispers/slitch/tree/master) a low-level networking library in 2003 and then again in a [fork by Olof-Joachim Frahm](https://github.com/Ferada/binary-types/commits/master/) in 2013 that added 256 bit integers.
+Frode's version was sufficiently well done that the system went largely unchanged since except for some local additions for [slitch](https://github.com/sharplispers/slitch/tree/master) a low-level networking library in 2003 and then again in a [fork by Olof-Joachim Frahm](https://github.com/Ferada/binary-types/commits/master/) in 2013 that added 256 bit integers.
 
 This repository began in 2024 and adds support for 32/64 bit IEEE-754 floats, binary arrays, improved documentation and refactored the repository/ASDF system.
 
@@ -127,7 +127,7 @@ and, with that, we can read and print from the binary file with:
 	      (slot-value config 'hidden-dim)))))
 ```
 
-(Note: this isn't really the on-disk format for a llama LLM checkpoint, it's just an example that will be expanded on later)
+(Note: this isn't really the on-disk format for a llama LLM checkpoint, it's just an example for demonstration purposes.
 
 Also see [Chapter 24: Parsing Binary Files](https://gigamonkeys.com/book/practical-parsing-binary-files) for an extended example.
 
@@ -210,8 +210,8 @@ declarations are enough to read the header of an ELF executable file
 with the form
 
 ```lisp
-   (let ((*endian* :big-endian))
-     (read-binary 'elf-header stream)
+(let ((*endian* :big-endian))
+  (read-binary 'elf-header stream)
 
 ;;; ELF basic type declarations
 (define-unsigned word 4)
@@ -290,6 +290,7 @@ For a second example, here's an approach to supporting floats:
 
 In version 1.0 or later BINARY-TYPES uses Marijn Haverbeke's [ieee-floats](https://github.com/marijnh/ieee-floats) system to convert floats.
 
+### Generating a class diagram
 The postscript file "type-hierarchy.ps" shows the binary types
 hierarchy.  It is generated using psgraph and closer-mop, which may be
 loaded via Quicklisp as shown below:

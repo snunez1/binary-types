@@ -713,7 +713,7 @@ read are returned."
 	   (t (setf (slot-value object (record-slot-name slot)) read-slot-value)))
 	  (incf total-read-bytes read-slot-bytes)))
       (values object total-read-bytes))))
-  
+
 (defmethod read-binary ((type binary-record) stream &key start stop &allow-other-keys)
   (read-binary-record (binary-type-name type) stream :start start :stop stop))
 
