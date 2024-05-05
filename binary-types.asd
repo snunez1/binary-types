@@ -11,7 +11,8 @@
   :author "Frode V. Fjeld"
   :maintainer "Steven Nunez"
   :license :BSD-3-Clause
-  :depends-on ("ieee-floats")
+  :depends-on ("ieee-floats"
+	       "array-operations")
   :perform (load-op :after (op c)
 		    (provide 'binary-types))
   :in-order-to ((test-op (test-op "binary-types/tests")))
