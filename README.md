@@ -75,7 +75,7 @@ Support most kinds of binary types including:
 
  * 32 and 64 bit IEEE-754 floats map to lisp `single-float` and `double-float`.
 
- * Supports NaN and infinities
+ * NaN and infinities
 
 
 ### History
@@ -169,7 +169,7 @@ should be careful to always provide a legal value in the slot (as you
 must always do when declaring slots' types).  If you find this
 confusing, just use `:BINARY-TYPE`.
 
-![type hierarchy](./docs/type-hierarchy.png)
+![type hierarchy](./doc/type-hierarchy.png)
 
 
 ### Bitfields

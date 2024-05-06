@@ -103,7 +103,7 @@ SBCL has an [[https://github.com/sbcl/sbcl/blob/ac267f21721663b196aefe4bfd998416
 closest rational given the ~mantissa~, ~exponent~ and ~sign~.
 
 The algorithm is reproduced here:
-
+#+BEGIN_EXAMPLE
 Algorithm (recursively presented):
   If x is a rational number, return x.
   If x = 0.0, return 0.
@@ -132,10 +132,10 @@ Algorithm (recursively presented):
           k := c-1          ; k = floor(a), k < a < b <= k+1
           return y = k + 1/fraction_between(1/(b-k), 1/(a-k))
                             ; note 1 <= 1/(b-k) < 1/(a-k)
-
+#+END_EXAMPLE
 You can see that we are actually computing a continued fraction
 expansion in the above version.
-
+#+BEGIN_EXAMPLE
 Algorithm (iterative):
   If x is rational, return x.
   Call (integer-decode-float x). It returns a m,e,s (mantissa,
@@ -157,13 +157,14 @@ Algorithm (iterative):
   At the end, return s * (p[i]/q[i]).
   This rational number is already in lowest terms because
   p[i]*q[i-1]-p[i-1]*q[i] = (-1)^i.
-
+#+END_EXAMPLE
+#+BEGIN_EXAMPLE
 See also
   Hardy, Wright: An introduction to number theory
 and/or
   <http://modular.fas.harvard.edu/edu/Fall2001/124/lectures/lecture17/lecture17/>
   <http://modular.fas.harvard.edu/edu/Fall2001/124/lectures/lecture17/lecture18/>
-
+#+END_EXAMPLE
 You can get the mantissa, exponent and sign using the [[http://clhs.lisp.se/Body/f_dec_fl.htm][floating point functions of Common Lisp]].
 
 An alternative to implementing ~long-float~ in CL considered, but not
@@ -288,6 +289,7 @@ mathematics to fail. Be careful with floating point!
 If these test are failing on your system, you might want to take
 note of the values you get from the following.  The tests were
 developed on:
+#+BEGIN_EXAMPLE
 CL-USER> (lisp-implementation-type)
 "Clozure Common Lisp"
 CL-USER> (lisp-implementation-version)
@@ -298,7 +300,7 @@ most-negative-fixnum = -1152921504606846976
 most-positive-fixnum =  1152921504606846975
 CL-USER> (expt 2 60)
 1152921504606846976
-
+#+END_EXAMPLE
 
 * Generating a class diagram
 The postscript file "type-hierarchy.ps" shows the binary types
