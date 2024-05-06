@@ -5,24 +5,10 @@
 
 (defsuite binary-types ())
 
-;;; If these test are failing on your system, you might want to take
-;;; note of the values you get from the following.  The tests were
-;;; developed on:
-;; CL-USER> (lisp-implementation-type)
-;; "Clozure Common Lisp"
-;; CL-USER> (lisp-implementation-version)
-;; "Version 1.12.2 (v1.12.2-16-gc4df19e6) WindowsX8664"
-
-;; (integer-length most-negative-fixnum) ;=> 60
-;; most-negative-fixnum = -1152921504606846976
-;; most-positive-fixnum =  1152921504606846975
-;; CL-USER> (expt 2 60)
-;; 1152921504606846976
-
 
 (deftest vectors (binary-types)
 
-  ;; unsigned 32 bit
+  ;; u32
   (let* ((binary-types:*endian* :little-endian)
 	 (test-vector #(1 2 3 4 10 9 8 7))
 	 binary-to			;write lisp vector INTO this variable
@@ -36,7 +22,7 @@
   (assert-true (num= test-vector binary-from)))
 
 
-  ;; signed 32 bit
+  ;; s32
   (let* ((binary-types:*endian* :little-endian)
 	 (test-vector #(1 -2 3 -4 10 -9 8 7))
 	 binary-to
@@ -50,7 +36,35 @@
   (assert-true (num= test-vector binary-from)))
 
 
-  ;; signed 64 bit
+  ;; f32
+  (let* ((binary-types:*endian* :little-endian)
+	 (test-vector #(1.1s0 -2.2s0 3.3s0 -4.4s0 10.1s0 -9.9s0 8.8s0 7.7s0))
+	 binary-to
+	 binary-from)
+
+  (eval `(define-binary-vector binary-seq f32 ,(length test-vector)))
+  (setf binary-to (with-output-to-sequence (out)
+		    (write-binary 'binary-seq out test-vector)))
+  (setf binary-from (with-input-from-sequence (in binary-to)
+		      (read-binary 'binary-seq in)))
+  (assert-true (num= test-vector binary-from)))
+
+
+  ;; f64
+  (let* ((binary-types:*endian* :little-endian)
+	 (test-vector #(1.1d0 -2.2d0 3.3d0 -4.4d0 10.1d0 -9.9d0 8.8d0 7.7d0))
+	 binary-to
+	 binary-from)
+
+  (eval `(define-binary-vector binary-seq f64 ,(length test-vector)))
+  (setf binary-to (with-output-to-sequence (out)
+		    (write-binary 'binary-seq out test-vector)))
+  (setf binary-from (with-input-from-sequence (in binary-to)
+		      (read-binary 'binary-seq in)))
+  (assert-true (num= test-vector binary-from)))
+
+
+  ;; s64
   (let* ((binary-types:*endian* :little-endian)
 	 (test-vector `#(,most-negative-fixnum
 			1 -2 3 -4 10 -9 8 7
@@ -140,6 +154,7 @@
 			(read-binary 'binary-arr in)))
     (assert-true (num= test-array binary-from)))
 
+
   ;; s32
   (let* ((binary-types:*endian* :little-endian)
 	 (test-array #2A((1 -2 3 -4 10 -9 8 7)
@@ -153,6 +168,21 @@
   (setf binary-from (with-input-from-sequence (in binary-to)
 		      (read-binary 'binary-arr in)))
   (assert-true (num= test-array binary-from)))
+
+
+  ;; f32
+  (let* ((binary-types:*endian* :little-endian)
+	 (test-array (aops:rand '(2 8) 'single-float))
+	 binary-to
+	 binary-from)
+
+  (eval `(define-binary-array binary-arr f32 ',(aops:dims test-array)))
+  (setf binary-to (with-output-to-sequence (out)
+		    (write-binary 'binary-arr out test-array)))
+  (setf binary-from (with-input-from-sequence (in binary-to)
+		      (read-binary 'binary-arr in)))
+  (assert-true (num= test-array binary-from)))
+
 
   ;; u64
   (let* ((binary-types:*endian* :little-endian)
@@ -169,6 +199,7 @@
 			(read-binary 'binary-arr in)))
     (assert-true (num= test-array binary-from)))
 
+
   ;; s64
   (let* ((binary-types:*endian* :little-endian)
 	 (test-array (make-array '(2 8)
@@ -183,6 +214,21 @@
     (setf binary-from (with-input-from-sequence (in binary-to)
 			(read-binary 'binary-arr in)))
     (assert-true (num= test-array binary-from)))
+
+
+  ;; f64
+  (let* ((binary-types:*endian* :little-endian)
+	 (test-array (aops:rand '(2 8) 'double-float))
+	 binary-to
+	 binary-from)
+
+  (eval `(define-binary-array binary-arr f64 ',(aops:dims test-array)))
+  (setf binary-to (with-output-to-sequence (out)
+		    (write-binary 'binary-arr out test-array)))
+  (setf binary-from (with-input-from-sequence (in binary-to)
+		      (read-binary 'binary-arr in)))
+  (assert-true (num= test-array binary-from)))
+
 
   ;; u128
   ;; (integer-length (expt 2 125)) => 126
@@ -200,7 +246,11 @@
 			(read-binary 'binary-arr in)))
     (assert-true (num= test-array binary-from)))
 
-  ;; multi-dimensional arrays
+
+
+  ;;; multi-dimensional arrays
+
+  ;; u32
   (let* ((binary-types:*endian* :little-endian)
 	 (test-array #3A(((12 5 9)
 			  (6 5 6)
@@ -215,6 +265,20 @@
 	 binary-from)
 
     (eval `(define-binary-array binary-arr u32 ',(aops:dims test-array)))
+    (setf binary-to (with-output-to-sequence (out)
+		      (write-binary 'binary-arr out test-array)))
+    (setf binary-from (with-input-from-sequence (in binary-to)
+			(read-binary 'binary-arr in)))
+    (assert-true (num= test-array binary-from)))
+
+
+  ;; f64
+  (let* ((binary-types:*endian* :little-endian)
+	 (test-array (aops:rand '(3 3) 'double-float))
+	 binary-to
+	 binary-from)
+
+    (eval `(define-binary-array binary-arr f64 ',(aops:dims test-array)))
     (setf binary-to (with-output-to-sequence (out)
 		      (write-binary 'binary-arr out test-array)))
     (setf binary-from (with-input-from-sequence (in binary-to)

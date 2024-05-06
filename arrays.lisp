@@ -4,11 +4,6 @@
 ;;; SPDX-License-identifier: BSD-3-Clause
 (in-package #:binary-types)
 
-;;; Partially from: https://github.com/sharplispers/slitch/blob/master/src/binary-types-extra.lisp
-
-(export '(define-binary-vector binary-vector binary-vector-input-state
-	  define-binary-array  binary-array  binary-array-input-state))
-
 (defun binary-vector-input-state (stream)
   "Returns two values: the vector being read, and the current input position."
   (values (cdr stream) (1+ (car stream))))

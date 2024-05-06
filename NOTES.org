@@ -1,0 +1,322 @@
+* Floating Point Types
+
+As a rough conceptual guide, what float-types in common lisp are
+/supposed/ to be is something like this:
+
+| short-float  | 16-bit  |
+| single-float | 32-bit  |
+| double-float | 64-bit  |
+| long-float   | 128-bit |
+
+However the CL [[https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node19.html][definitions for floating-point]] are somewhat
+underspecified:
+
+#+BEGIN_QUOTE
+"The precise definition of these categories is implementation-dependent."
+#+END_QUOTE
+
+and so they are.  Most implementations are not focused on numerical
+computation, and implement only the minimum required for compliance
+with the ANSI specification.
+
+The table below lays out the formats for some of the implementations:
+
+| Implementation | type         | bits |
+|----------------+--------------+------|
+| CCL            | short-float  |   32 |
+|                | single-float |   32 |
+|                | double-float |   64 |
+|                | long-float   |   64 |
+| Lispworks      | short-float  |   64 |
+|                | single-float |   64 |
+|                | double-float |   64 |
+|                | long-float   |   64 |
+| SBCL           | short-float  |   32 |
+|                | single-float |   32 |
+|                | double-float |   64 |
+|                | long-float   |   64 |
+
+SBCL has added [[https://github.com/sbcl/sbcl/blob/master/src/code/float.lisp/][support for long-float]] of 128 bits, but it appears to
+be disabled due to bugs that assume the old way of just having two
+formats.
+
+What this means for ~binary-types~ is that reading/writing numeric
+types in bits not supported by the implementation:
+
+- Conversion to f32 for numbers in f16 binary format, with /no/ loss in precision
+- Conversion to f64 for numbers in a larger binary format, /with/ a loss in precision
+
+Therefore we have only implemented f32 and f64.
+
+Should you wish to add support for [[https://en.wikipedia.org/wiki/Half-precision_floating-point_format][half-precision]] or [[https://en.wikipedia.org/wiki/Double-precision_floating-point_format][double-precision]]
+floating point formats, the code is present, but commented out.  See
+implementation notes below for guidelines on adding these to your lisp
+implementation.
+
+** Half Precision (16 bit)
+In machine learning, 16-bit floating points ([[https://en.wikipedia.org/wiki/Half-precision_floating-point_format][half-precision]]) have
+become popular both because storing large arrays of weights is more
+space efficiency and because GPUs have optimisations for processing
+16-bit numbers.
+
+However if you're /not/ using a GPU, then there's little benefit to
+using half-precision. Here's what [[https://web.archive.org/web/20170813130756/https://software.intel.com/en-us/articles/performance-benefits-of-half-precision-floats][Intel has to say]] about
+half-precision and performance.
+
+#+BEGIN_QUOTE
+Because the half precision floating-point format is a storage format,
+the only operation performed on half-floats is conversion to and from
+32-bit floats. The 3rd generation Intel® Core™ processor family
+introduced two half-float conversion instructions: vcvtps2ph for
+converting from 32-bit float to half-float, and vcvtph2ps for
+converting from half-float to 32-bit float.
+
+[...]
+
+Half precision floats have several inherent advantages over 32-bit
+floats when accessing memory: 1) they are half the size and thus may
+fit into a lower level of cache with a lower latency, 2) they take up
+half the cache space, which frees up cache space for other data in
+your program, and 3) they require half the memory bandwidth, which
+frees up that bandwidth for other operations in your program.
+#+END_QUOTE
+
+Bottom line: Your lisp implemenation will probably encode short-floats
+as 32-bit floats, and as the Intel article says, their CPUs will
+convert that into 32 bit for processing.  However GPUs can efficiently
+work with half-precision floats, so if you're doing a lot of that it
+may be worth looking into adding a true ~short-float~ to your lisp
+implementation.
+
+** Double-precision (128 bit)
+To decode floating point numbers of this size properly, we need to:
+
+1. Use an implementation of CL that supports ~long-float~ properly; /or/
+2. Decode the 128-bit number to a rational.  This will be exact, but slow
+
+You can write custom decoders that find the closest rational.  Using
+the common lisp `coerce` function will result in a loss of accuracy
+because we will convert the 128 bit float to 64 bit float and then
+~coerce~ it.
+
+SBCL has an [[https://github.com/sbcl/sbcl/blob/ac267f21721663b196aefe4bfd998416e3cc4332/src/code/float.lisp#L757][accurate implementation of coerce]] that will find the
+closest rational given the ~mantissa~, ~exponent~ and ~sign~.
+
+The algorithm is reproduced here:
+
+Algorithm (recursively presented):
+  If x is a rational number, return x.
+  If x = 0.0, return 0.
+  If x < 0.0, return (- (rationalize (- x))).
+  If x > 0.0:
+    Call (integer-decode-float x). It returns a m,e,s=1 (mantissa,
+    exponent, sign).
+    If m = 0 or e >= 0: return x = m*2^e.
+    Search a rational number between a = (m-1/2)*2^e and b = (m+1/2)*2^e
+    with smallest possible numerator and denominator.
+    Note 1: If m is a power of 2, we ought to take a = (m-1/4)*2^e.
+      But in this case the result will be x itself anyway, regardless of
+      the choice of a. Therefore we can simply ignore this case.
+    Note 2: At first, we need to consider the closed interval [a,b].
+      but since a and b have the denominator 2^(|e|+1) whereas x itself
+      has a denominator <= 2^|e|, we can restrict the seach to the open
+      interval (a,b).
+    So, for given a and b (0 < a < b) we are searching a rational number
+    y with a <= y <= b.
+    Recursive algorithm fraction_between(a,b):
+      c := (ceiling a)
+      if c < b
+        then return c       ; because a <= c < b, c integer
+        else
+          ; a is not integer (otherwise we would have had c = a < b)
+          k := c-1          ; k = floor(a), k < a < b <= k+1
+          return y = k + 1/fraction_between(1/(b-k), 1/(a-k))
+                            ; note 1 <= 1/(b-k) < 1/(a-k)
+
+You can see that we are actually computing a continued fraction
+expansion in the above version.
+
+Algorithm (iterative):
+  If x is rational, return x.
+  Call (integer-decode-float x). It returns a m,e,s (mantissa,
+    exponent, sign).
+  If m = 0 or e >= 0, return m*2^e*s. (This includes the case x = 0.0.)
+  Create rational numbers a := (2*m-1)*2^(e-1) and b := (2*m+1)*2^(e-1)
+  (positive and already in lowest terms because the denominator is a
+  power of two and the numerator is odd).
+  Start a continued fraction expansion
+    p[-1] := 0, p[0] := 1, q[-1] := 1, q[0] := 0, i := 0.
+  Loop
+    c := (ceiling a)
+    if c >= b
+      then k := c-1, partial_quotient(k), (a,b) := (1/(b-k),1/(a-k)),
+           goto Loop
+  finally partial_quotient(c).
+  Here partial_quotient(c) denotes the iteration
+    i := i+1, p[i] := c*p[i-1]+p[i-2], q[i] := c*q[i-1]+q[i-2].
+  At the end, return s * (p[i]/q[i]).
+  This rational number is already in lowest terms because
+  p[i]*q[i-1]-p[i-1]*q[i] = (-1)^i.
+
+See also
+  Hardy, Wright: An introduction to number theory
+and/or
+  <http://modular.fas.harvard.edu/edu/Fall2001/124/lectures/lecture17/lecture17/>
+  <http://modular.fas.harvard.edu/edu/Fall2001/124/lectures/lecture17/lecture18/>
+
+You can get the mantissa, exponent and sign using the [[http://clhs.lisp.se/Body/f_dec_fl.htm][floating point functions of Common Lisp]].
+
+An alternative to implementing ~long-float~ in CL considered, but not
+explored, is the [[https://github.com/jesseoff/ratmath][ratmath]] system, "a collection of utilities for
+working with rational numbers, approximations, and intervals in Common
+Lisp".  It does not appear to work 'out of the box', but may be close.
+
+
+** Integers
+128 bit integers are becoming more common, are are now
+[[https://developer.nvidia.com/blog/implementing-high-precision-decimal-arithmetic-with-cuda-int128/][implemented in CUDA 11.5]].
+
+
+
+* Implementation Notes
+The original ~binary-types~ system suggested the following for a ~single-float~ implementation:
+
+#+BEGIN_SRC lisp
+(define-bitfield ieee754-single-float (u32)
+  (((:enum :byte (1 31))
+     positive 0
+     negative 1)
+    ((:numeric exponent 8 23))
+    ((:numeric significand 23 0))))
+#+END_SRC
+
+that we considered for implementing floats.  Since 1999, the date of
+the original ~binary-types~, other systems have been developed to
+encode/decode [[https://en.wikipedia.org/wiki/IEEE_754][IEEE-754 floating point formats]].  Rather than reinvent
+the wheel, we adopted the [[https://github.com/marijnh/ieee-floats][ieee-floats]] system to convert floats.  See
+the [[https://ieee-floats.common-lisp.dev/][ieee-floats documentation]] for an overview.
+
+** ieee-floats
+From the ieee-floats implementation notes, we can see that there's a
+non-trival amount of work in properly implementing an encoder/decoder:
+
+The following macro may look a bit overcomplicated to the casual
+reader. The main culprit is the fact that NaN and infinity can be
+optionally included, which adds a bunch of conditional parts.
+
+Assuming you already know more or less how floating point numbers
+are typically represented, I'll try to elaborate a bit on the more
+confusing parts, as marked by letters:
+
+(A) Exponents in IEEE floats are offset by half their range, for
+    example with 8 exponent bits a number with exponent 2 has 129
+    stored in its exponent field.
+
+(B) The maximum possible exponent is reserved for special cases
+    (NaN, infinity).
+
+(C) If the exponent fits in the exponent-bits, we have to adjust
+    the significand for the hidden bit. Because decode-float will
+    return a significand between 0 and 1, and we want one between 1
+    and 2 to be able to hide the hidden bit, we double it and then
+    subtract one (the hidden bit) before converting it to integer
+    representation (to adjust for this, 1 is subtracted from the
+    exponent earlier). When the exponent is too small, we set it to
+    zero (meaning no hidden bit, exponent of 1), and adjust the
+    significand downward to compensate for this.
+
+(D) Here the hidden bit is added. When the exponent is 0, there is
+    no hidden bit, and the exponent is interpreted as 1.
+
+(E) Here the exponent offset is subtracted, but also an extra
+    factor to account for the fact that the bits stored in the
+    significand are supposed to come after the 'decimal dot'.
+
+This is a good reason not to reinvent the wheel.
+
+
+** Vectors
+The implementation of vectors was taken from [[https://github.com/sharplispers/slitch/blob/master/src/binary-types-extra.lisp][slitch]].
+
+
+** Lispworks
+This is likely to fail out of the box on Lispworks, where all floats are encoded as u64.
+
+** Common Lisp
+And this [[https://www.reddit.com/r/lisp/comments/7t48mv/comment/dtb9w0c/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button][quote from reddit]]:
+
+#+BEGIN_QUOTE
+When Common Lisp was being developed, there were computers from many
+different manufacturers with different word sizes and floating point
+formats. For programs to produce the same results on different
+architectures, the programmer had to be able to inquire as to the
+details of the floating point format in use. So functions such as
+integer-decode-float were created. Using this function we can examine
+the floating point numbers in the region of 37.937045:
+
+#+BEGIN_SRC lisp
+  (defun list-neighbor-floats (start n)
+    (multiple-value-bind (signif expon sign)
+	(integer-decode-float start)
+      (loop for sig from signif
+	    for return-float = (* sign (scale-float (coerce sig 'single-float) expon))
+	    repeat n do (format t "~8d ~12,6f~%" sig return-float))))
+
+  This produces significand floating point:
+  9944967 37.937040 9944968 37.937042 9944969 37.937046 <= the closest float in the region 9944970
+  37.937050 9944971 37.937054
+#+END_SRC
+
+The floating point number is actually exactly 9944969/262144
+(#x97bc05/#x40000), or exactly 3.7937046051025390625 in decimal. Every
+floating point number has an exact decimal representation, but not
+every decimal has an exact floating point representation, that is
+because floating point uses only powers of two while decimal uses
+powers of two and powers of 5. This is unfortunate, as Guy Steele
+pointed out. The imprecision that people see in floating point numbers
+comes from the rounding that must be performed to fit the result in a
+limited space, not from the individual number. Floating point numbers
+are a brilliant engineering device, but they are not really numbers in
+the mathematical sense. For instance, (= (expt 2.0 24) (1+ (expt 2.0
+24))) => t, from which it follows that 1 = 0, which pretty much causes
+mathematics to fail. Be careful with floating point!
+#+END_QUOTE
+
+
+* Tests
+
+If these test are failing on your system, you might want to take
+note of the values you get from the following.  The tests were
+developed on:
+CL-USER> (lisp-implementation-type)
+"Clozure Common Lisp"
+CL-USER> (lisp-implementation-version)
+"Version 1.12.2 (v1.12.2-16-gc4df19e6) WindowsX8664"
+
+(integer-length most-negative-fixnum) ;=> 60
+most-negative-fixnum = -1152921504606846976
+most-positive-fixnum =  1152921504606846975
+CL-USER> (expt 2 60)
+1152921504606846976
+
+
+* Generating a class diagram
+The postscript file "type-hierarchy.ps" shows the binary types
+hierarchy.  It is generated using psgraph and closer-mop, which may be
+loaded via Quicklisp as shown below:
+
+#+BEGIN_SRC lisp
+(ql:quickload "psgraph")
+(ql:quickload "closer-mop")
+
+(with-open-file (*standard-output* "type-hierarchy.ps"
+                                   :direction :output
+                                   :if-exists :supersede)
+  (psgraph:psgraph *standard-output* 'binary-types::binary-type
+                   (lambda (p)
+                     (mapcar #'class-name
+                             (closer-mop:class-direct-subclasses
+                              (find-class p))))
+                   (lambda (s) (list (symbol-name s)))
+                   t))
+#+END_SRC

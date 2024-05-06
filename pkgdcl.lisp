@@ -3,7 +3,7 @@
 ;;; Copyright (c) 2024 by Steven Nunez. All rights reserved.
 ;;; SPDX-License-identifier: BSD-3-Clause
 
-(uiop:define-package #:binary-types
+(uiop:define-package "BINARY-TYPES"
   (:use #:common-lisp)
   (:export #:*endian*			; [dynamic-var] must be bound when reading integers
 	   #:endianess			; [deftype] The set of endian names
@@ -23,11 +23,16 @@
 	   #:s256			; [type-name] 256-bit signed integer
 					; (you may define additional integer types
 					; of any size yourself.)
+	   #:f16			; [type-name] IEEE-754 16-bit float
+	   #:f32			; [type-name] IEEE-754 32-bit float
+	   #:f64			; [type-name] IEEE-754 64-bit float
 	   ;; type defining macros
 	   #:define-unsigned		; [macro] declare an unsigned-int type
 	   #:define-signed		; [macro] declare a signed-int type
 	   #:define-binary-struct	; [macro] declare a binary defstruct type
 	   #:define-binary-class	; [macro] declare a binary defclass type
+	   #:define-binary-vector	; [macro] declare a binary vector type
+	   #:define-binary-array	; [macro] declare a binary array type
 	   #:define-bitfield		; [macro] declare a bitfield (symbolic integer) type
 	   #:define-enum		; [macro] declare an enumerated type
 	   #:define-binary-string	; [macro] declare a string type
@@ -59,4 +64,4 @@
 	   #:*padding-byte*		; [dynamic-var] The value filled in when writing paddings
 	   #:split-bytes		; [func] utility
 	   #:merge-bytes)		; [func] utility
-  (:documentation "BINARY-TYPES documenation"))
+  (:documentation "Read and write binary data to streams.  This is useful when interfacing to external systems, like C, or in reading binary file formats, such as data files or music.  Using a declarative syntax you can define the structure of the binary file, and then load it with all the definitions populated.  There is also a stream based interface for reading/writing individual elements."))

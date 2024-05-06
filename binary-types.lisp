@@ -67,8 +67,7 @@ means that the endianess is determined by the dynamic value of *endian*."
 ;;; ----------------------------------------------------------------
 
 (defgeneric sizeof (type)
-  (:documentation "Return the size in octets of the single argument TYPE,
-or nil if TYPE is not constant-sized."))
+  (:documentation "Return the size in octets of the single argument TYPE, or nil if TYPE is not constant-sized."))
 
 (defmethod sizeof (obj)
   (sizeof (find-binary-type (type-of obj))))
@@ -95,7 +94,8 @@ or nil if TYPE is not constant-sized."))
     :reader binary-type-name)
    (sizeof
     :initarg sizeof
-    :reader sizeof))
+    :reader sizeof
+    :documentation "Size of BINARY-TYPE in bytes"))
   (:documentation "BINARY-TYPE is the base class for binary types meta-classes."))
 
 (defmethod print-object ((object binary-type) stream)
@@ -121,9 +121,7 @@ or nil if TYPE is not constant-sized."))
 		(binary-type-name type)))
     (call-next-method type stream)))
 
-;;; WRITE-BINARY is identical for SIGNED and UNSIGNED, but READ-BINARY
-;;; is not.
-
+;;; WRITE-BINARY is identical for SIGNED and UNSIGNED, but READ-BINARY is not.
 (defmethod write-binary ((type binary-integer) stream object &key &allow-other-keys)
   (check-type object integer)
   (if (= 1 (sizeof type))
@@ -174,8 +172,7 @@ or nil if TYPE is not constant-sized."))
 	((:big-endian big-endian)
 	 (dotimes (i (sizeof type))
 	   (setf unsigned-value (+ (* unsigned-value #x100)
-				   (funcall *binary-read-byte* stream)
-				   ))))
+				   (funcall *binary-read-byte* stream)))))
 	((:little-endian little-endian)
 	 (dotimes (i (sizeof type))
 	   (setf unsigned-value (+ unsigned-value
@@ -218,8 +215,7 @@ or nil if TYPE is not constant-sized."))
 	((:big-endian big-endian)
 	 (dotimes (i (sizeof type))
 	   (setf unsigned-value (+ (* unsigned-value #x100)
-				   (funcall *binary-read-byte* stream)
-				   ))))
+				   (funcall *binary-read-byte* stream)))))
 	((:little-endian little-endian)
 	 (dotimes (i (sizeof type))
 	   (setf unsigned-value (+ unsigned-value
@@ -234,8 +230,7 @@ or nil if TYPE is not constant-sized."))
 ;;;                       Character Types
 ;;; ----------------------------------------------------------------
 
-;;; There are probably lots of things one _could_ do with character
-;;; sets etc..
+;;; There are probably lots of things one _could_ do with character sets etc..
 
 (defclass binary-char8 (binary-type) ())
 
@@ -1096,7 +1091,7 @@ otherwise the value of BODY."
 	     (list stream-var))))))
 
 
-;;;
+;;; Utilities
 
 (defun split-bytes (bytes from-size to-size)
   "From a list of BYTES sized FROM-SIZE bits, split each byte into bytes of size TO-SIZE,
@@ -1129,3 +1124,62 @@ otherwise the value of BODY."
 	   collect (loop for n from 0 below factor
 		       as sub-byte = (or (nth (- factor 1 n) bytes) 0)
 		       summing (ash sub-byte (* n from-size))))))))
+
+
+;;; ----------------------------------------------------------------
+;;;                          Float Types
+;;; ----------------------------------------------------------------
+
+;; 32 and 64 bit decoders are provided by default with ieee-floats system
+;; (ieee-floats:make-float-converters encode-float16 decode-float16 5 10 nil)
+;; (ieee-floats:make-float-converters encode-float128 decode-float128 15 112 nil)
+
+(defclass binary-float (binary-type)
+  ((endian :type endianess
+	   :reader binary-integer-endian
+	   :initarg endian
+	   :initform nil)))
+
+(defmethod print-object ((type binary-float) stream)
+  (if (not *print-readably*)
+      (print-unreadable-object (type stream :type t)
+	(format stream "~D-BIT~@[ ~A~] FLOAT TYPE: ~A"
+		(* 8 (slot-value type 'sizeof))
+		(slot-value type 'endian)
+		(binary-type-name type)))
+    (call-next-method type stream)))
+
+(defmacro define-float (name size &optional endian)
+  (check-type size (integer 1 *))
+  (check-type endian endianess)
+  `(progn
+     (deftype ,name () '(ieee-754 ,(* 8 size)))
+     (setf (find-binary-type ',name)
+       (make-instance 'binary-float
+	 'name ',name
+	 'sizeof ,size
+	 'endian ,endian))
+     ',name))
+
+;; See NOTES.org for why these aren't defined.
+;; (define-float f8 1)
+;; (define-float f16 2)
+(define-float f32 4)
+(define-float f64 8)
+;; (define-float f128 16)
+;; (define-float f256 32)
+
+(defmethod write-binary ((type binary-float) stream object &key &allow-other-keys)
+  (check-type object float)
+  (let ((ieee-754-type (* 8 (slot-value type 'sizeof))))
+    (case ieee-754-type
+      (32 (write-binary 'u32 stream (ieee-floats:encode-float32 object)))
+      (64 (write-binary 'u64 stream (ieee-floats:encode-float64 object))))))
+
+(defmethod read-binary ((type binary-float) stream &key &allow-other-keys)
+  (let ((ieee-754-type (* 8 (slot-value type 'sizeof))))
+    (case ieee-754-type
+      (32 (values (ieee-floats:decode-float32 (read-binary 'u32 stream))
+		  (sizeof type)))
+      (64 (values (ieee-floats:decode-float64 (read-binary 'u64 stream))
+		  (sizeof type))))))

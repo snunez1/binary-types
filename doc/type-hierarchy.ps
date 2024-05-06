@@ -1,0 +1,265 @@
+%!PS-Adobe-1.0
+%%Page: ? ?
+/max {2 copy lt {exch} if pop} def
+/min {2 copy gt {exch} if pop} def
+/inch {72 mul} def
+/drawbox
+{/height exch def
+/width exch def
+/y exch def
+/x exch def
+gsave newpath
+x y boxradius add moveto
+x y height add x width add y height add boxradius arcto pop pop pop pop
+x width add y height add x width add y boxradius arcto pop pop pop pop
+x width add y x y boxradius arcto pop pop pop pop
+x y x y height add boxradius arcto pop pop pop pop
+boxgray setgray boxkind grestore
+} def
+/xarray 13 array def
+/widtharray 13 array def
+/leftmargin 36 def
+/botmargin 36 def
+/pagewidth 540 def
+/pageheight 720 def
+/boxradius 5 def 
+/boxedge 2 def 
+/boxgray .2 def 
+/boxkind {stroke} def
+/Helvetica findfont 10 scalefont setfont
+widtharray 0 (BINARY-TYPE) stringwidth pop put
+widtharray 1 (BINARY-FLOAT) stringwidth pop put
+widtharray 2 (BITFIELD) stringwidth pop put
+widtharray 3 (BINARY-RECORD) stringwidth pop put
+widtharray 4 (BINARY-ARRAY) stringwidth pop put
+widtharray 5 (BINARY-VECTOR) stringwidth pop put
+widtharray 6 (BINARY-STRUCT) stringwidth pop put
+widtharray 7 (BINARY-CLASS) stringwidth pop put
+widtharray 8 (BINARY-STRING) stringwidth pop put
+widtharray 9 (BINARY-CHAR8) stringwidth pop put
+widtharray 10 (BINARY-INTEGER) stringwidth pop put
+widtharray 11 (BINARY-SIGNED) stringwidth pop put
+widtharray 12 (BINARY-UNSIGNED) stringwidth pop put
+/Helvetica-Oblique findfont 8 scalefont setfont
+widtharray 0 get
+4 add widtharray exch 0 exch put
+widtharray 1 get
+4 add widtharray exch 1 exch put
+widtharray 2 get
+4 add widtharray exch 2 exch put
+widtharray 3 get
+4 add widtharray exch 3 exch put
+widtharray 4 get
+4 add widtharray exch 4 exch put
+widtharray 5 get
+4 add widtharray exch 5 exch put
+widtharray 6 get
+4 add widtharray exch 6 exch put
+widtharray 7 get
+4 add widtharray exch 7 exch put
+widtharray 8 get
+4 add widtharray exch 8 exch put
+widtharray 9 get
+4 add widtharray exch 9 exch put
+widtharray 10 get
+4 add widtharray exch 10 exch put
+widtharray 11 get
+4 add widtharray exch 11 exch put
+widtharray 12 get
+4 add widtharray exch 12 exch put
+xarray 0 0 put
+xarray 0 get widtharray 0 get add
+20 add xarray exch 1 exch put
+xarray 0 get widtharray 0 get add
+20 add xarray exch 2 exch put
+xarray 0 get widtharray 0 get add
+20 add xarray exch 3 exch put
+xarray 3 get widtharray 3 get add
+20 add xarray exch 4 exch put
+xarray 3 get widtharray 3 get add
+20 add xarray exch 5 exch put
+xarray 3 get widtharray 3 get add
+20 add xarray exch 6 exch put
+xarray 3 get widtharray 3 get add
+20 add xarray exch 7 exch put
+xarray 0 get widtharray 0 get add
+20 add xarray exch 8 exch put
+xarray 0 get widtharray 0 get add
+20 add xarray exch 9 exch put
+xarray 0 get widtharray 0 get add
+20 add xarray exch 10 exch put
+xarray 10 get widtharray 10 get add
+20 add xarray exch 11 exch put
+xarray 10 get widtharray 10 get add
+20 add xarray exch 12 exch put
+/maximum-x 0
+0 1 12
+{/i exch def
+xarray i get widtharray i get add max
+} for
+def
+106 dict begin
+/box0 {
+xarray 0 get 96 widtharray 0 get 14 drawbox
+} def
+/box1 {
+xarray 1 get 183 widtharray 1 get 14 drawbox
+} def
+/box2 {
+xarray 2 get 163 widtharray 2 get 14 drawbox
+} def
+/box3 {
+xarray 3 get 113 widtharray 3 get 14 drawbox
+} def
+/box4 {
+xarray 4 get 143 widtharray 4 get 14 drawbox
+} def
+/box5 {
+xarray 5 get 123 widtharray 5 get 14 drawbox
+} def
+/box6 {
+xarray 6 get 103 widtharray 6 get 14 drawbox
+} def
+/box7 {
+xarray 7 get 83 widtharray 7 get 14 drawbox
+} def
+/box8 {
+xarray 8 get 63 widtharray 8 get 14 drawbox
+} def
+/box9 {
+xarray 9 get 43 widtharray 9 get 14 drawbox
+} def
+/box10 {
+xarray 10 get 13 widtharray 10 get 14 drawbox
+} def
+/box11 {
+xarray 11 get 23 widtharray 11 get 14 drawbox
+} def
+/box12 {
+xarray 12 get 3 widtharray 12 get 14 drawbox
+} def
+/text0 {xarray 0 get boxedge add 100 moveto (BINARY-TYPE) show} def
+/text1 {xarray 1 get boxedge add 187 moveto (BINARY-FLOAT) show} def
+/text2 {xarray 2 get boxedge add 167 moveto (BITFIELD) show} def
+/text3 {xarray 3 get boxedge add 117 moveto (BINARY-RECORD) show} def
+/text4 {xarray 4 get boxedge add 147 moveto (BINARY-ARRAY) show} def
+/text5 {xarray 5 get boxedge add 127 moveto (BINARY-VECTOR) show} def
+/text6 {xarray 6 get boxedge add 107 moveto (BINARY-STRUCT) show} def
+/text7 {xarray 7 get boxedge add 87 moveto (BINARY-CLASS) show} def
+/text8 {xarray 8 get boxedge add 67 moveto (BINARY-STRING) show} def
+/text9 {xarray 9 get boxedge add 47 moveto (BINARY-CHAR8) show} def
+/text10 {xarray 10 get boxedge add 17 moveto (BINARY-INTEGER) show} def
+/text11 {xarray 11 get boxedge add 27 moveto (BINARY-SIGNED) show} def
+/text12 {xarray 12 get boxedge add 7 moveto (BINARY-UNSIGNED) show} def
+/edge0 {newpath
+stroke } def
+/edge1 {newpath
+xarray 0 get widtharray 0 get add 103 moveto
+xarray 1 get 190 lineto
+stroke } def
+/edge2 {newpath
+xarray 0 get widtharray 0 get add 103 moveto
+xarray 2 get 170 lineto
+stroke } def
+/edge3 {newpath
+xarray 0 get widtharray 0 get add 103 moveto
+xarray 3 get 120 lineto
+stroke } def
+/edge4 {newpath
+xarray 3 get widtharray 3 get add 120 moveto
+xarray 4 get 150 lineto
+stroke } def
+/edge5 {newpath
+xarray 3 get widtharray 3 get add 120 moveto
+xarray 5 get 130 lineto
+stroke } def
+/edge6 {newpath
+xarray 3 get widtharray 3 get add 120 moveto
+xarray 6 get 110 lineto
+stroke } def
+/edge7 {newpath
+xarray 3 get widtharray 3 get add 120 moveto
+xarray 7 get 90 lineto
+stroke } def
+/edge8 {newpath
+xarray 0 get widtharray 0 get add 103 moveto
+xarray 8 get 70 lineto
+stroke } def
+/edge9 {newpath
+xarray 0 get widtharray 0 get add 103 moveto
+xarray 9 get 50 lineto
+stroke } def
+/edge10 {newpath
+xarray 0 get widtharray 0 get add 103 moveto
+xarray 10 get 20 lineto
+stroke } def
+/edge11 {newpath
+xarray 10 get widtharray 10 get add 20 moveto
+xarray 11 get 30 lineto
+stroke } def
+/edge12 {newpath
+xarray 10 get widtharray 10 get add 20 moveto
+xarray 12 get 10 lineto
+stroke } def
+/boxchunk0 {
+box0
+box1
+box2
+box3
+box4
+box5
+box6
+box7
+box8
+box9
+box10
+box11
+box12
+} def
+/textchunk0 {
+text0
+text1
+text2
+text3
+text4
+text5
+text6
+text7
+text8
+text9
+text10
+text11
+text12
+} def
+/secondtextchunk0 {
+} def
+/edgechunk0 {
+edge0
+edge1
+edge2
+edge3
+edge4
+edge5
+edge6
+edge7
+edge8
+edge9
+edge10
+edge11
+edge12
+} def
+/drawgraph { gsave
+boxchunk0
+.5 setlinewidth
+1 setlinecap
+.2 setgray
+edgechunk0
+0 setgray
+/Helvetica findfont 10 scalefont setfont
+textchunk0
+/Helvetica-Oblique findfont 8 scalefont setfont
+secondtextchunk0
+grestore } def
+leftmargin botmargin translate
+pagewidth dup maximum-x max div pageheight dup 200 max div min dup scale
+drawgraph showpage end

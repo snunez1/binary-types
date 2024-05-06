@@ -71,18 +71,20 @@ Support most kinds of binary types including:
  * Compound records of other binary types. Maps to lisp `DEFCLASS`
    classes or, when you prefer, `DEFSTRUCT` structs.
 
- * Vectors and arrays of integers and floats.
+ * Vectors and arrays
 
  * 32 and 64 bit IEEE-754 floats map to lisp `single-float` and `double-float`.
+
+ * Supports NaN and infinities
 
 
 ### History
 
-BINARY-TYPES was developed over the years 1999-2003 by Frode Vatvedt Fjeld <frodef@acm.org> whilst working at the Department of Computer Science, University of Tromsø, Norway. It later served as the basis for [Chapter 24: Parsing Binary Files](https://gigamonkeys.com/book/practical-parsing-binary-files) of the book [Practical Common Lisp](https://gigamonkeys.com/book/) by Peter Seibel.  That chapter makes a good technical reference for the system, and you should read it if you want to extend BINARY-TYPES.
+[BINARY-TYPES](https://github.com/frodef/binary-types) was developed over the years 1999-2003 by Frode Vatvedt Fjeld <frodef@acm.org> whilst working at the Department of Computer Science, University of Tromsø, Norway. It later served as the basis for [Chapter 24: Parsing Binary Files](https://gigamonkeys.com/book/practical-parsing-binary-files) of the book [Practical Common Lisp](https://gigamonkeys.com/book/) by Peter Seibel.  That chapter makes a good technical reference for the system, and you should read it if you want to extend BINARY-TYPES.
 
-Frode's version was sufficiently well done that the system went largely unchanged since except for some local additions for [slitch](https://github.com/sharplispers/slitch/tree/master) a low-level networking library in 2003 and then again in a [fork by Olof-Joachim Frahm](https://github.com/Ferada/binary-types/commits/master/) in 2013 that added 256 bit integers.
+Frode's version was sufficiently well done that the system went largely unchanged since except for some local additions for [slitch](https://github.com/sharplispers/slitch/tree/master) a low-level networking library in 2003 and then again in a [fork by Olof-Joachim Frahm](https://github.com/Ferada/binary-types/commits/master/) in 2013 that added 128 and 256 bit integers.
 
-This repository began in 2024 and adds support for 32/64 bit IEEE-754 floats, binary arrays, improved documentation and refactored the repository/ASDF system.
+This repository began in 2024 and adds support for 32/64 bit IEEE-754 floats, binary arrays, a test framework, improved documentation and refactored the repository/ASDF system.
 
 
 <!-- INSTALLATION -->
@@ -109,6 +111,20 @@ git clone https://github.com/snunez1/binary-types.git
 If you have installed the slime ASDF extensions, you can invoke this with a comma (',') from the slime REPL.
 
 
+## Who uses?
+`binary-types` is used by several systems, including:
+
+* [slitch](https://github.com/sharplispers/slitch), a low-level networking library
+* [live-control](https://github.com/cbaggers/live-control), a way to fire data from your phone/tablet to your desktop
+* [lispcap](https://github.com/marcmos/lispcap), passive L2 ARP host tracker with ARP request query feature
+* [gdb-remote](https://github.com/deepfire/gdb-remote)
+* [cl-websocket](https://github.com/Frechmatz/cl-websocket), a WebSocket-Server implemented in Common Lisp
+* [cl-evdev](https://github.com/jtgans/cl-evdev), a simple driver for teasing out events from Linux’s /dev/input drivers
+* [ovomorph](https://github.com/hanshuebner/ovomorph), an I/O-server for vintage computers
+* [cl-gypsum-client](https://github.com/jtgans/cl-gypsum-client), a client for the [http://www.github.com/jtgans/gypsum](Gypsum) protocol
+* [cl-lass](https://github.com/jl2/cl-las), library to read LAS Lidar files
+
+
 <!-- Using -->
 ## Using
 Typically, a complete binary record format/type can be specified in a single (nested) declaration statement. Such compound records may then be read and written with `READ-BINARY` and `WRITE-BINARY`.  So start with the specification for the binary file or stream and map each element.  Here's a simple example to take the first two bytes of a file:
@@ -131,7 +147,6 @@ and, with that, we can read and print from the binary file with:
 
 Also see [Chapter 24: Parsing Binary Files](https://gigamonkeys.com/book/practical-parsing-binary-files) for an extended example.
 
-
 ### Declaring classes and structures
 Binary types may be declared with the `DEFINE-BINARY-CLASS` macro, which has the same syntax and semantics as `DEFCLASS`, only there is an additional slot-option (named `:BINARY-TYPE`) that declares that slot's binary type. Note that the binary aspects of slots are *not* inherited (the semantics of inheriting binary slots is unspecified).
 
@@ -153,6 +168,8 @@ from the binary-type declaration.  When using this mechanism, you
 should be careful to always provide a legal value in the slot (as you
 must always do when declaring slots' types).  If you find this
 confusing, just use `:BINARY-TYPE`.
+
+![type hierarchy](./docs/type-hierarchy.png)
 
 
 ### Bitfields
@@ -274,40 +291,6 @@ with the form
    (e-shentsize :binary-type half)
    (e-shnum     :binary-type half)
    (e-shstrndx  :binary-type half)))
-```
-
-For a second example, here's an approach to supporting floats:
-```lisp
-  (define-bitfield ieee754-single-float (u32)
-    (((:enum :byte (1 31))
-       positive 0
-       negative 1)
-      ((:numeric exponent 8 23))
-      ((:numeric significand 23 0))))
-```
-
-
-
-In version 1.0 or later BINARY-TYPES uses Marijn Haverbeke's [ieee-floats](https://github.com/marijnh/ieee-floats) system to convert floats.
-
-### Generating a class diagram
-The postscript file "type-hierarchy.ps" shows the binary types
-hierarchy.  It is generated using psgraph and closer-mop, which may be
-loaded via Quicklisp as shown below:
-```lisp
-(ql:quickload "psgraph")
-(ql:quickload "closer-mop")
-
-(with-open-file (*standard-output* "type-hierarchy.ps"
-                                   :direction :output
-                                   :if-exists :supersede)
-  (psgraph:psgraph *standard-output* 'binary-types::binary-type
-                   (lambda (p)
-                     (mapcar #'class-name
-                             (closer-mop:class-direct-subclasses
-                              (find-class p))))
-                   (lambda (s) (list (symbol-name s)))
-                   t))
 ```
 
 ## Performance
