@@ -7,7 +7,7 @@
   :description "A library for reading and writing binary records."
   :long-description #.(uiop:read-file-string
 		       (uiop:subpathname *load-pathname* "description.text"))
-  :version "1.0.0"
+  :version "1.0.1"
   :author "Frode V. Fjeld"
   :maintainer "Steven Nunez"
   :license :BSD-3-Clause

@@ -29,6 +29,7 @@
 	   ;; type defining macros
 	   #:define-unsigned		; [macro] declare an unsigned-int type
 	   #:define-signed		; [macro] declare a signed-int type
+	   #:define-float		; [macro] declare a IEEE-754 float
 	   #:define-binary-struct	; [macro] declare a binary defstruct type
 	   #:define-binary-class	; [macro] declare a binary defclass type
 	   #:define-binary-vector	; [macro] declare a binary vector type

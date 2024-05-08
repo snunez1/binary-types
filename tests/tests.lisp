@@ -294,3 +294,43 @@
   ;; "quad precision" (128-bit) we'll add the tests.
 
 
+
+(deftest composite (binary-types)
+
+  ;; vector of vectors
+  (let* ((binary-types:*endian* :little-endian)
+	 (test-vector #(#(0.9143338203430176d0 0.21972346305847168d0 0.9707512855529785d0 0.5962116718292236d0 0.6005609035491943d0 0.5940588712692261d0 0.2837725877761841d0 0.009566903114318848d0 0.8435225486755371d0 0.22492897510528564d0)
+		       #(0.8314709663391113d0 0.2795267105102539d0 0.5844146013259888d0 0.7568612098693848d0 0.9189847707748413d0 0.007325291633605957d0 0.3114813566207886d0 0.5958571434020996d0 0.07142329216003418d0 0.7225879430770874d0)
+		       #(0.6982585191726685d0 0.42384862899780273d0 0.8679864406585693d0 0.3627190589904785d0 0.3574702739715576d0 0.7974770069122314d0 0.5154801607131958d0 0.4812943935394287d0 0.48626482486724854d0 0.9495172500610352d0)))
+	 binary-to
+	 binary-from)
+
+    (eval `(define-binary-vector bve f64 10)) ;binary vector elements
+    (eval `(define-binary-vector binary-vec bve 3)) ;the outmost vector
+    (setf binary-to (with-output-to-sequence (out)
+		      (write-binary 'binary-vec out test-vector)))
+    (setf binary-from (with-input-from-sequence (in binary-to)
+			(read-binary 'binary-vec in)))
+    (assert-true (num= test-vector binary-from)))
+
+  ;; vector of arrays
+  ;; This really is an optional functionality.  If you need to read vectors of arrays, do it in a loop
+  #+(or)
+  (let* ((binary-types:*endian* :little-endian)
+	 #+nil
+	 (test-vector `#(,(aops:rand '(3 3)) ;a vector of 4 3x3 arrays of single-float
+			 ,(aops:rand '(3 3))
+			 ,(aops:rand '(3 3))
+			 ,(aops:rand '(3 3))))
+	 binary-to
+	 binary-from)
+
+    (eval `(define-binary-array bae f32 '(3 3))) ;binary array elements, a 3x3 array of single-float
+    (eval `(define-binary-vector binary-vec bae 4)) ;vector of 4 'bae
+    (setf binary-to (with-output-to-sequence (out)
+		      (write-binary 'binary-vec out test-vector)))
+    (setf binary-from (with-input-from-sequence (in binary-to)
+			(read-binary 'binary-vec in)))
+    (assert-true (num= test-vector binary-from)))
+
+  )

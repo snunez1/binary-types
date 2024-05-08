@@ -36,33 +36,6 @@ means that the endianess is determined by the dynamic value of *endian*."
 :little-endian while reading endian-sensitive types.")
 
 ;;; ----------------------------------------------------------------
-;;;                  Binary Types Namespace
-;;; ----------------------------------------------------------------
-
-(defvar *binary-type-namespace* (make-hash-table :test #'eq)
-  "Maps binary type's names (which are symbols) to their binary-type class object.")
-
-(defun find-binary-type (name &optional (errorp t))
-  (or (gethash name *binary-type-namespace*)
-      (if errorp
-	  (error "Unable to find binary type named ~S." name)
-	nil)))
-
-(defun (setf find-binary-type) (value name)
-  (check-type value binary-type)
-  (let ((old-value (find-binary-type name nil)))
-    (when (and old-value (not (eq (class-of value) (class-of old-value))))
-      (warn "Redefining binary-type ~A from ~A to ~A."
-	    name (type-of old-value) (type-of value))))
-  (setf (gethash name *binary-type-namespace*) value))
-
-(defun find-binary-type-name (type)
-  (maphash #'(lambda (key val)
-	       (when (eq type val)
-		 (return-from find-binary-type-name key)))
-	   *binary-type-namespace*))
-
-;;; ----------------------------------------------------------------
 ;;;                  Base Binary Type (Abstract)
 ;;; ----------------------------------------------------------------
 
@@ -101,6 +74,33 @@ means that the endianess is determined by the dynamic value of *endian*."
 (defmethod print-object ((object binary-type) stream)
   (print-unreadable-object (object stream :type 'binary-type)
     (format stream "~A" (binary-type-name object))))
+
+;;; ----------------------------------------------------------------
+;;;                  Binary Types Namespace
+;;; ----------------------------------------------------------------
+
+(defvar *binary-type-namespace* (make-hash-table :test #'eq)
+  "Maps binary type's names (which are symbols) to their binary-type class object.")
+
+(defun find-binary-type (name &optional (errorp t))
+  (or (gethash name *binary-type-namespace*)
+      (if errorp
+	  (error "Unable to find binary type named ~S." name)
+	nil)))
+
+(defun (setf find-binary-type) (value name)
+  (check-type value binary-type)
+  (let ((old-value (find-binary-type name nil)))
+    (when (and old-value (not (eq (class-of value) (class-of old-value))))
+      (warn "Redefining binary-type ~A from ~A to ~A."
+	    name (type-of old-value) (type-of value))))
+  (setf (gethash name *binary-type-namespace*) value))
+
+(defun find-binary-type-name (type)
+  (maphash #'(lambda (key val)
+	       (when (eq type val)
+		 (return-from find-binary-type-name key)))
+	   *binary-type-namespace*))
 
 ;;; ----------------------------------------------------------------
 ;;;                      Integer Type (Abstract)
@@ -1042,6 +1042,8 @@ binding is shadowed."
 				      (funcall ,save-brb-var s)))))
        ,@body)))
 
+;; Siebel, and SBCL, warn against this style.  Consider making them
+;; all keyword parameters in the next release.
 (defmacro with-binary-output-to-vector
     ((stream-var &optional (vector-or-size-form 0)
       &key (adjustable (and (integerp vector-or-size-form)
@@ -1153,7 +1155,7 @@ otherwise the value of BODY."
   (check-type size (integer 1 *))
   (check-type endian endianess)
   `(progn
-     (deftype ,name () '(ieee-754 ,(* 8 size)))
+     (deftype ,name () 'float)
      (setf (find-binary-type ',name)
        (make-instance 'binary-float
 	 'name ',name
