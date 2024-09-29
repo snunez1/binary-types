@@ -42,7 +42,8 @@
 		      (binary-vector-size type)))
 
 (defun read-binary-vector (stream type size)
-  (let ((vec (make-array (list size) :element-type type))
+  (let ((vec (make-array (list size) :element-type (cond ((eq type 'f64) 'double-float)
+							 ((eq type 'f32) 'single-float))))
 	(read-bytes 0))
     (dotimes (i size)
       (multiple-value-bind (obj bytes)
@@ -105,7 +106,8 @@
 		     (binary-array-dimensions type)))
 
 (defun read-binary-array (stream type size dimensions)
-  (let ((arr (make-array dimensions :element-type type))
+  (let ((arr (make-array dimensions :element-type (cond ((eq type 'f64) 'double-float)
+							((eq type 'f32) 'single-float))))
 	(read-bytes 0))
     (dotimes (i size)
       (multiple-value-bind (obj bytes)
