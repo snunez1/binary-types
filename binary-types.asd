@@ -6,7 +6,7 @@
 (defsystem "binary-types"
   :description "A library for reading and writing binary records."
   :long-description #.(uiop:read-file-string
-		       (uiop:subpathname *load-pathname* "description.text"))
+		       (uiop:subpathname *load-pathname* "description.txt"))
   :version "1.0.1"
   :author "Frode V. Fjeld"
   :maintainer "Steven Nunez"

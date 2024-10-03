@@ -65,4 +65,5 @@
 	   #:*padding-byte*		; [dynamic-var] The value filled in when writing paddings
 	   #:split-bytes		; [func] utility
 	   #:merge-bytes)		; [func] utility
-  (:documentation "Read and write binary data to streams.  This is useful when interfacing to external systems, like C, or in reading binary file formats, such as data files or music.  Using a declarative syntax you can define the structure of the binary file, and then load it with all the definitions populated.  There is also a stream based interface for reading/writing individual elements."))
+  (:documentation #.(uiop:read-file-string
+		       (uiop:subpathname *load-pathname* "description.txt"))))
